@@ -23,6 +23,7 @@ func main() {
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Get("/readiness", handlerReadiness)
+    apiRouter.Get("/err", handlerError)
 
 	r.Mount("/api/v1", apiRouter)
 
