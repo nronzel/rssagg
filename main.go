@@ -22,7 +22,9 @@ func main() {
 
 	apiRouter := chi.NewRouter()
 
-	r.Mount("/v1", apiRouter)
+	apiRouter.Get("/readiness", handlerReadiness)
+
+	r.Mount("/api/v1", apiRouter)
 
 	server := &http.Server{
 		Addr:    ":" + port,
