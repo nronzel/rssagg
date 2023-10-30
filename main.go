@@ -36,7 +36,7 @@ func main() {
 	}
 	dbQueries := database.New(db)
 
-	apiCfg := apiConfig{
+	cfg := apiConfig{
 		DB: dbQueries,
 	}
 
@@ -52,8 +52,11 @@ func main() {
 
 	v1Router := chi.NewRouter()
 
-	v1Router.Post("/users", apiCfg.handlerUsersCreate)
-    v1Router.Get("/users", apiCfg.handlerUsersGet)
+	v1Router.Post("/users", cfg.handlerUsersCreate)
+	v1Router.Get("/users", cfg.middlewareAuth(cfg.handlerUsersGet))
+
+	v1Router.Post("/feeds", cfg.middlewareAuth(cfg.handlerFeedsCreate))
+	v1Router.Get("/feeds", cfg.handlerFeedsGet)
 
 	v1Router.Get("/readiness", handlerReadiness)
 	v1Router.Get("/err", handlerError)
