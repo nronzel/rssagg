@@ -9,7 +9,7 @@ import (
 	"github.com/nronzel/rssagg/internal/database"
 )
 
-func (cfg *apiConfig) handlerUserCreate(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Name string `json:"name"`
 	}
