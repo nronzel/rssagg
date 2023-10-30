@@ -18,14 +18,21 @@ type apiConfig struct {
 }
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
+	godotenv.Load(".env")
+	port := os.Getenv("PORT")
+	if port == "" {
 		log.Fatal("PORT not defined in environment variables")
 	}
-	port := os.Getenv("PORT")
-	connstr := os.Getenv("CONNSTR")
-	db, err := sql.Open("postgres", connstr)
 
+	connstr := os.Getenv("CONNSTR")
+	if connstr == "" {
+		log.Fatal("CONNSTR not defined in environment variables")
+	}
+
+	db, err := sql.Open("postgres", connstr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	dbQueries := database.New(db)
 
 	apiCfg := apiConfig{
@@ -33,17 +40,23 @@ func main() {
 	}
 
 	r := chi.NewRouter()
-	r.Use(cors.Handler(cors.Options{}))
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
-	apiRouter := chi.NewRouter()
+	v1Router := chi.NewRouter()
 
-	apiRouter.Get("/readiness", handlerReadiness)
-	apiRouter.Get("/err", handlerError)
+	v1Router.Post("/users", apiCfg.handlerUsersCreate)
 
-    apiRouter.Post("/users", apiCfg.handlerUserCreate)
+	v1Router.Get("/readiness", handlerReadiness)
+	v1Router.Get("/err", handlerError)
 
-	r.Mount("/api/v1", apiRouter)
-
+	r.Mount("/v1", v1Router)
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: r,
