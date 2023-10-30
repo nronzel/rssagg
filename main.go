@@ -19,6 +19,7 @@ type apiConfig struct {
 
 func main() {
 	godotenv.Load(".env")
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT not defined in environment variables")
@@ -52,6 +53,7 @@ func main() {
 	v1Router := chi.NewRouter()
 
 	v1Router.Post("/users", apiCfg.handlerUsersCreate)
+    v1Router.Get("/users", apiCfg.handlerUsersGet)
 
 	v1Router.Get("/readiness", handlerReadiness)
 	v1Router.Get("/err", handlerError)
