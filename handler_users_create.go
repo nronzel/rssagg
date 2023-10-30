@@ -17,7 +17,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 	params := parameters{}
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
+		respondWithError(w, http.StatusInternalServerError, "couldn't decode parameters")
 		return
 	}
 
@@ -29,7 +29,7 @@ func (cfg *apiConfig) handlerUsersCreate(w http.ResponseWriter, r *http.Request)
 		Name:      params.Name,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
+		respondWithError(w, http.StatusInternalServerError, "couldn't create user")
 		return
 	}
 
