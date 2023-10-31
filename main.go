@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -60,7 +61,7 @@ func main() {
 
 	v1Router.Post("/feed_follows", cfg.middlewareAuth(cfg.handlerFeedFollowsCreate))
 	v1Router.Delete("/feed_follows/{feedFollowID}", cfg.middlewareAuth(cfg.handlerFeedFollowsDelete))
-    v1Router.Get("/feed_follows", cfg.middlewareAuth(cfg.handlerFeedFollowsGet))
+	v1Router.Get("/feed_follows", cfg.middlewareAuth(cfg.handlerFeedFollowsGet))
 
 	v1Router.Get("/readiness", handlerReadiness)
 	v1Router.Get("/err", handlerError)
@@ -70,6 +71,10 @@ func main() {
 		Addr:    ":" + port,
 		Handler: r,
 	}
+
+	const collectionConcurrency = 10
+	const collectionInterval = time.Minute
+	go startHarvest(dbQueries, collectionConcurrency, collectionInterval)
 
 	log.Printf("Server started on localhost:%s", port)
 	log.Fatal(server.ListenAndServe())

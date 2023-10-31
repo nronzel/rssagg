@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -86,4 +87,11 @@ func databaseFeedFollowstoFeedFollows(feedFollows []database.FeedFollow) []FeedF
 		result[i] = databaseFeedFollowtoFeedFollow(feedFollow)
 	}
 	return result
+}
+
+func nullTimeToTimePtr(t sql.NullTime) *time.Time {
+	if t.Valid {
+		return &t.Time
+	}
+	return nil
 }
