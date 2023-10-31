@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -23,12 +24,13 @@ func (cfg *apiConfig) handlerFeedsCreate(w http.ResponseWriter, r *http.Request,
 	}
 
 	feed, err := cfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
-		ID:        uuid.New(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-		Name:      params.Name,
-		Url:       params.Url,
-		UserID:    user.ID,
+		ID:            uuid.New(),
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
+		Name:          params.Name,
+		Url:           params.Url,
+		UserID:        user.ID,
+		LastFetchedAt: sql.NullTime{Valid: false},
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "couldn't create feed")
