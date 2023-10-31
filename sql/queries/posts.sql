@@ -3,10 +3,9 @@ INSERT INTO posts(id, created_at, updated_at, title, url, description, published
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
--- name: GetPostByUser :one
-SELECT *
-FROM posts p
-JOIN feed_follows ff ON p.feed_id = ff.feed_id
-WHERE ff.user_id = $1
-ORDER BY p.published_at DESC
+-- name: GetPostsByUser :many
+SELECT posts.* FROM posts
+JOIN feed_follows ON feed_follows.feed_id = posts.feed_id
+WHERE feed_follows.user_id = $1
+ORDER BY posts.published_at DESC
 LIMIT $2;

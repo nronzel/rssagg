@@ -55,53 +55,47 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 	return i, err
 }
 
-const getPostByUser = `-- name: GetPostByUser :one
-SELECT p.id, p.created_at, p.updated_at, title, url, description, published_at, p.feed_id, ff.id, ff.feed_id, user_id, ff.created_at, ff.updated_at
-FROM posts p
-JOIN feed_follows ff ON p.feed_id = ff.feed_id
-WHERE ff.user_id = $1
-ORDER BY p.published_at DESC
+const getPostsByUser = `-- name: GetPostsByUser :many
+SELECT posts.id, posts.created_at, posts.updated_at, posts.title, posts.url, posts.description, posts.published_at, posts.feed_id FROM posts
+JOIN feed_follows ON feed_follows.feed_id = posts.feed_id
+WHERE feed_follows.user_id = $1
+ORDER BY posts.published_at DESC
 LIMIT $2
 `
 
-type GetPostByUserParams struct {
+type GetPostsByUserParams struct {
 	UserID uuid.UUID
 	Limit  int32
 }
 
-type GetPostByUserRow struct {
-	ID          uuid.UUID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Title       string
-	Url         string
-	Description sql.NullString
-	PublishedAt sql.NullTime
-	FeedID      uuid.UUID
-	ID_2        uuid.UUID
-	FeedID_2    uuid.UUID
-	UserID      uuid.UUID
-	CreatedAt_2 time.Time
-	UpdatedAt_2 time.Time
-}
-
-func (q *Queries) GetPostByUser(ctx context.Context, arg GetPostByUserParams) (GetPostByUserRow, error) {
-	row := q.db.QueryRowContext(ctx, getPostByUser, arg.UserID, arg.Limit)
-	var i GetPostByUserRow
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Title,
-		&i.Url,
-		&i.Description,
-		&i.PublishedAt,
-		&i.FeedID,
-		&i.ID_2,
-		&i.FeedID_2,
-		&i.UserID,
-		&i.CreatedAt_2,
-		&i.UpdatedAt_2,
-	)
-	return i, err
+func (q *Queries) GetPostsByUser(ctx context.Context, arg GetPostsByUserParams) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPostsByUser, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.Url,
+			&i.Description,
+			&i.PublishedAt,
+			&i.FeedID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
