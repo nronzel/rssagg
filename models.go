@@ -36,6 +36,12 @@ type Feed struct {
 }
 
 func databaseFeedToFeed(feed database.Feed) Feed {
+	var lastFetched *time.Time
+
+	if feed.LastFetchedAt.Valid {
+		lastFetched = &feed.LastFetchedAt.Time
+	}
+
 	return Feed{
 		ID:            feed.ID,
 		CreatedAt:     feed.CreatedAt,
@@ -43,7 +49,7 @@ func databaseFeedToFeed(feed database.Feed) Feed {
 		Name:          feed.Name,
 		Url:           feed.Url,
 		UserID:        feed.UserID,
-		LastFetchedAt: feed.LastFetchedAt,
+		LastFetchedAt: lastFetched,
 	}
 
 }
