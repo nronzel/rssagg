@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"io"
 	"log"
@@ -48,7 +49,27 @@ func harvestFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 		return
 	}
 	for _, item := range feedData.Channel.Item {
-		log.Println("Found post", item.Title)
+		// log.Println("Found post", item.Title)
+		var description sql.NullString
+		if item.Description != "" {
+			description = sql.NullString{String: item.Description, Valid: true}
+		}
+
+        publishedAt, err := time.Parse(time.RFC1123, item.PubDate)
+        if err != nil {
+            log.Printf("Couldn't parse pub date for post %s: %v", item.Title, err)
+        }
+
+		db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: description,
+            PublishedAt: sql.NullTime{Time: publishedAt, Valid: true},
+			FeedID:      feed.ID,
+		})
 	}
 	log.Printf("Feed %s collected, %v posts found", feed.Name, len(feedData.Channel.Item))
 }
